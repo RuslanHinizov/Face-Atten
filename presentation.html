@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartAttend — AI Система учёта посещаемости</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04070e;
+  --c1:#6ee7b7;--c2:#818cf8;--c3:#f59e0b;--c4:#f87171;--c5:#38bdf8;
+}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{background:var(--bg);color:#f1f5f9;font-family:'Inter',sans-serif;line-height:1.6;overflow-x:hidden}
+h1,h2,h3{font-family:'Space Grotesk',sans-serif;font-weight:800;line-height:1.08;letter-spacing:-0.04em}
+
+/* PROGRESS */
+#bar{position:fixed;top:0;left:0;height:3px;width:0;z-index:999;
+  background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3));transition:width .08s linear}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:center;justify-content:space-between;padding:20px 52px;transition:all .4s}
+nav.s{background:rgba(4,7,14,.88);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,.06)}
+.logo{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:20px;display:flex;align-items:center;gap:10px;letter-spacing:-0.03em}
+.ld{width:8px;height:8px;border-radius:50%;background:var(--c1);box-shadow:0 0 14px var(--c1),0 0 28px rgba(110,231,183,.4);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.7);opacity:.5}}
+.nl{display:flex;gap:32px}
+.nl a{color:#64748b;font-size:13px;font-weight:500;text-decoration:none;transition:color .2s;letter-spacing:.01em}
+.nl a:hover{color:#f1f5f9}
+
+/* SECTIONS */
+section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:120px 52px;position:relative;overflow:hidden}
+.w{max-width:1180px;margin-inline:auto;width:100%}
+
+/* GLOW ORBS */
+.orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;opacity:.18}
+
+/* SECTION LABELS */
+.lb{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--c1);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.lb::before{content:'';width:28px;height:2px;background:var(--c1);border-radius:2px}
+.ti{font-size:clamp(38px,5vw,62px);margin-bottom:18px}
+.su{font-size:17px;color:#64748b;font-weight:300;max-width:520px;line-height:1.8;margin-bottom:56px}
+
+/* ═══ HERO ═══ */
+#h0{padding:0;justify-content:flex-end}
+.hv{position:absolute;inset:0;object-fit:cover;width:100%;height:100%;filter:brightness(.22) saturate(.6)}
+.ho{position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,7,14,.1) 0%,rgba(4,7,14,.45) 45%,var(--bg) 100%)}
+.hi{position:relative;z-index:2;max-width:1180px;margin-inline:auto;width:100%;padding:0 52px 96px}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:28px;
+  background:rgba(110,231,183,.1);border:1px solid rgba(110,231,183,.25);color:var(--c1)}
+.bdot{width:6px;height:6px;border-radius:50%;background:var(--c1);animation:pulse 1.5s infinite}
+.ht{font-size:clamp(56px,8vw,104px);letter-spacing:-0.05em;line-height:1.02;margin-bottom:22px}
+.gr{background:linear-gradient(125deg,var(--c1) 0%,var(--c2) 50%,var(--c5) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hs{font-size:clamp(15px,1.8vw,19px);color:#94a3b8;font-weight:300;max-width:520px;margin-bottom:56px;line-height:1.8}
+.sr{display:flex;border-top:1px solid rgba(255,255,255,.07);padding-top:40px;gap:52px}
+.sv{font-family:'Space Grotesk',sans-serif;font-size:clamp(32px,4vw,54px);font-weight:800;letter-spacing:-0.04em}
+.sl{font-size:12px;color:#64748b;margin-top:5px;letter-spacing:.03em;font-weight:400}
+
+/* ═══ PROBLEM ═══ */
+#p1{background:linear-gradient(180deg,var(--bg) 0%,#060b18 100%)}
+.pg{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-top:0}
+.pi{padding:44px;background:rgba(255,255,255,.025);position:relative;overflow:hidden;transition:all .35s;cursor:default}
+.pi:hover{background:rgba(255,255,255,.05)}
+.pi-glow{position:absolute;width:120px;height:120px;border-radius:50%;filter:blur(40px);top:-30px;right:-30px;opacity:0;transition:opacity .4s}
+.pi:hover .pi-glow{opacity:.25}
+.pi-ic-wrap{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:20px;border:1px solid rgba(255,255,255,.08)}
+.pi-t{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700;margin-bottom:10px;letter-spacing:-0.02em}
+.pi-d{font-size:13px;color:#64748b;line-height:1.75}
+.pi-bar{position:absolute;left:0;top:0;bottom:0;width:3px;transform:scaleY(0);transform-origin:bottom;transition:transform .45s}
+.pi:hover .pi-bar{transform:scaleY(1)}
+
+/* ═══ ARCHITECTURE ═══ */
+#p2{background:#060b18}
+.pipeline{display:flex;align-items:flex-start;margin-bottom:72px;overflow-x:auto;padding-bottom:8px}
+.pstep{flex:1;min-width:140px;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative}
+.pstep:not(:last-child)::after{content:'→';position:absolute;right:-12px;top:22px;color:rgba(110,231,183,.3);font-size:18px;font-weight:300;z-index:1}
+.picon{width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px;position:relative;z-index:2;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);transition:all .35s}
+.pstep:hover .picon{transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,.5)}
+.pname{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;margin-bottom:5px;letter-spacing:-0.01em}
+.pdesc{font-size:11px;color:#64748b;line-height:1.55;max-width:120px}
+
+.arch-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ac{padding:30px;border-radius:16px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);transition:all .35s;position:relative;overflow:hidden}
+.ac:hover{transform:translateY(-4px);background:rgba(255,255,255,.04)}
+.ac-num{font-family:'Space Grotesk',sans-serif;font-size:48px;font-weight:800;letter-spacing:-0.05em;opacity:.12;margin-bottom:14px;line-height:1}
+.ac-t{font-size:16px;font-weight:600;margin-bottom:8px;font-family:'Space Grotesk',sans-serif;letter-spacing:-0.01em}
+.ac-d{font-size:13px;color:#64748b;line-height:1.65}
+.ac-stripe{position:absolute;top:0;left:0;right:0;height:3px;border-radius:16px 16px 0 0}
+
+/* ═══ DEMO ═══ */
+#p3{background:linear-gradient(180deg,#060b18 0%,var(--bg) 100%)}
+.demo-wrap{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dc{border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.1);background:#000;position:relative;aspect-ratio:16/10;
+  box-shadow:0 32px 80px rgba(0,0,0,.6);transition:all .4s}
+.dc:hover{transform:translateY(-6px);box-shadow:0 48px 100px rgba(0,0,0,.7)}
+.dc video,.dc img{width:100%;height:100%;object-fit:cover;display:block}
+.dc-bar{position:absolute;top:0;left:0;right:0;padding:12px 16px;
+  background:linear-gradient(180deg,rgba(0,0,0,.8),transparent);
+  display:flex;align-items:center;justify-content:space-between}
+.dc-live{display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:100px;font-size:10px;font-weight:800;letter-spacing:.1em}
+.dc-live-dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite}
+.dc-bottom{position:absolute;bottom:0;left:0;right:0;padding:20px;
+  background:linear-gradient(0deg,rgba(0,0,0,.92) 0%,transparent 100%);
+  display:flex;align-items:flex-end;justify-content:space-between}
+.dc-name{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;margin-bottom:3px}
+.dc-sub{font-size:11px;color:rgba(255,255,255,.4)}
+.dc-tags{display:flex;gap:6px;flex-wrap:wrap}
+.dtag{padding:3px 10px;border-radius:100px;font-size:10px;font-weight:700}
+.dtag.g{background:rgba(110,231,183,.18);color:var(--c1);border:1px solid rgba(110,231,183,.25)}
+.dtag.p{background:rgba(129,140,248,.18);color:#a5b4fc;border:1px solid rgba(129,140,248,.25)}
+.dtag.a{background:rgba(245,158,11,.18);color:#fbbf24;border:1px solid rgba(245,158,11,.25)}
+.dtag.b{background:rgba(56,189,248,.18);color:var(--c5);border:1px solid rgba(56,189,248,.25)}
+/* Browser chrome */
+.browser{border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:#0f1219;
+  box-shadow:0 32px 80px rgba(0,0,0,.6);transition:all .4s;position:relative;aspect-ratio:16/10}
+.browser:hover{transform:translateY(-6px)}
+.browser-bar{background:#1a2030;padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.06)}
+.browser-dots{display:flex;gap:5px}
+.browser-dots span{width:11px;height:11px;border-radius:50%}
+.browser-url{flex:1;background:rgba(255,255,255,.06);border-radius:6px;padding:4px 12px;
+  font-size:11px;color:#64748b;font-family:'Inter',sans-serif;margin:0 8px}
+.browser-content{width:100%;height:calc(100% - 37px);overflow:hidden;position:relative}
+.browser-content img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+.dc-badge{position:absolute;top:46px;left:14px;display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:100px;font-size:10px;font-weight:700;letter-spacing:.08em}
+.dc-badge-dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite}
+
+/* ═══ TECH ═══ */
+#p4{background:var(--bg)}
+.tech-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.07)}
+.tc{padding:32px 28px;background:rgba(255,255,255,.025);position:relative;overflow:hidden;transition:all .3s;cursor:default}
+.tc:hover{background:rgba(255,255,255,.05)}
+.tc-glow{position:absolute;width:80px;height:80px;border-radius:50%;filter:blur(30px);bottom:-20px;right:-20px;opacity:0;transition:opacity .4s}
+.tc:hover .tc-glow{opacity:.4}
+.tc-cat{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px;opacity:.7}
+.tc-name{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:800;margin-bottom:5px;letter-spacing:-0.025em}
+.tc-ver{font-size:12px;color:#64748b;font-weight:400}
+.tc-bar{position:absolute;bottom:0;left:0;right:0;height:3px;transform:scaleX(0);transform-origin:left;transition:transform .4s}
+.tc:hover .tc-bar{transform:scaleX(1)}
+
+/* ═══ RESULTS ═══ */
+#p5{background:linear-gradient(180deg,var(--bg) 0%,#060b18 100%)}
+.results{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.rc{padding:48px;border-radius:20px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);transition:all .35s;position:relative;overflow:hidden}
+.rc:hover{transform:translateY(-4px)}
+.rc-glow{position:absolute;width:200px;height:200px;border-radius:50%;filter:blur(60px);bottom:-60px;right:-60px;opacity:.12;transition:opacity .4s}
+.rc:hover .rc-glow{opacity:.22}
+.rc-n{font-family:'Space Grotesk',sans-serif;font-size:clamp(52px,6vw,80px);font-weight:800;letter-spacing:-0.05em;line-height:1;margin-bottom:14px}
+.rc-l{font-size:15px;font-weight:600;margin-bottom:6px;font-family:'Space Grotesk',sans-serif}
+.rc-s{font-size:13px;color:#64748b;line-height:1.65;max-width:340px}
+
+/* ═══ FINAL ═══ */
+#p6{background:#060b18;text-align:center;justify-content:center;align-items:center}
+.ft{font-size:clamp(44px,7vw,88px);letter-spacing:-0.045em;line-height:1.05;margin-bottom:22px}
+.fs{font-size:17px;color:#64748b;max-width:460px;line-height:1.8;margin-bottom:44px}
+.chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:700px}
+.ch{padding:9px 20px;border-radius:100px;border:1px solid rgba(255,255,255,.09);font-size:13px;font-weight:500;color:#64748b;transition:all .25s;cursor:default}
+.ch:hover{border-color:rgba(110,231,183,.35);color:var(--c1);background:rgba(110,231,183,.06)}
+
+/* CURSOR SPOTLIGHT */
+#spotlight{
+  position:fixed;inset:0;pointer-events:none;z-index:1;
+  background:radial-gradient(600px circle at var(--mx,50%) var(--my,50%),rgba(110,231,183,.06) 0%,rgba(129,140,248,.03) 40%,transparent 70%);
+  transition:background .15s ease;
+}
+
+/* TYPING CURSOR */
+.type-cursor{display:inline-block;width:3px;height:.85em;background:var(--c1);border-radius:2px;margin-left:4px;vertical-align:middle;animation:blink .9s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* COMPARISON TABLE */
+#cmp{background:linear-gradient(180deg,#060b18 0%,var(--bg) 100%)}
+.cmp-wrap{display:grid;grid-template-columns:1fr 1fr;gap:3px;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.07)}
+.cmp-header{padding:20px 28px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.cmp-old .cmp-header{background:rgba(248,113,113,.08);color:var(--c4);border-bottom:1px solid rgba(248,113,113,.12)}
+.cmp-new .cmp-header{background:rgba(110,231,183,.08);color:var(--c1);border-bottom:1px solid rgba(110,231,183,.12)}
+.cmp-row{display:flex;align-items:center;gap:12px;padding:16px 28px;border-bottom:1px solid rgba(255,255,255,.04);font-size:14px;transition:background .2s}
+.cmp-row:hover{background:rgba(255,255,255,.03)}
+.cmp-row:last-child{border-bottom:none}
+.cmp-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.cmp-old .cmp-icon{background:rgba(248,113,113,.12)}
+.cmp-new .cmp-icon{background:rgba(110,231,183,.12)}
+.cmp-text{line-height:1.4}
+.cmp-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;opacity:.45;margin-bottom:6px}
+
+/* SIDE DOTS */
+.snv{position:fixed;right:24px;top:50%;transform:translateY(-50%);z-index:800;display:flex;flex-direction:column;gap:10px;align-items:center}
+.sd{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.15);cursor:pointer;transition:all .3s}
+.sd.on{background:var(--c1);box-shadow:0 0 10px var(--c1);width:6px;height:20px;border-radius:3px}
+
+/* DIVIDER */
+hr{border:none;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent)}
+
+/* GRID BG */
+.gbg{position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:64px 64px}
+
+/* REVEAL */
+.rv{opacity:0;transform:translateY(28px);transition:opacity .75s ease,transform .75s ease}
+.rv.show{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}
+.d4{transition-delay:.4s}.d5{transition-delay:.5s}.d6{transition-delay:.6s}
+
+@media(max-width:768px){
+  nav,section{padding-left:20px;padding-right:20px}
+  .nl{display:none}.hi{padding:0 20px 64px}
+  .sr{flex-wrap:wrap;gap:24px}
+  .pg,.demo-wrap,.arch-cards,.tech-grid,.results{grid-template-columns:1fr}
+  .pipeline{flex-direction:column;gap:16px}.pstep:not(:last-child)::after{display:none}
+  .snv{display:none}
+}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="spotlight"></div>
+
+<nav id="nav">
+  <div class="logo"><div class="ld"></div>SmartAttend</div>
+  <div class="nl">
+    <a href="#p1">Проблема</a>
+    <a href="#cmp">Было vs Стало</a>
+    <a href="#p2">Архитектура</a>
+    <a href="#p3">Демо</a>
+    <a href="#p4">Стек</a>
+    <a href="#p5">Результаты</a>
+  </div>
+</nav>
+
+<div class="snv" id="snv">
+  <div class="sd on" data-i="0"></div>
+  <div class="sd" data-i="1"></div>
+  <div class="sd" data-i="2"></div>
+  <div class="sd" data-i="3"></div>
+  <div class="sd" data-i="4"></div>
+  <div class="sd" data-i="5"></div>
+  <div class="sd" data-i="6"></div>
+  <div class="sd" data-i="7"></div>
+</div>
+
+<!-- ═══ HERO ═══ -->
+<section id="h0">
+  <video class="hv" autoplay muted loop playsinline><source src="Screen%20Recording%202026-03-26%20142633.mp4" type="video/mp4"></video>
+  <div class="ho"></div>
+  <!-- glow orbs -->
+  <div class="orb" style="width:600px;height:600px;background:var(--c2);top:-200px;right:-100px"></div>
+  <div class="orb" style="width:400px;height:400px;background:var(--c1);bottom:100px;left:-100px"></div>
+  <div class="hi">
+    <div class="badge rv"><div class="bdot"></div>AI · Real-time · RTX 4060 Ti</div>
+    <h1 class="ht rv d1">Smart<span class="gr">Attend</span><br><span id="typed-text"></span><span class="type-cursor" id="typed-cursor"></span></h1>
+    <p class="hs rv d2">Автоматическое распознавание лиц студентов в режиме реального времени — без ручной переклички</p>
+    <div class="sr rv d3">
+      <div>
+        <div class="sv" style="color:var(--c1)" data-count="39">0</div>
+        <div class="sl">Студентов в базе</div>
+      </div>
+      <div>
+        <div class="sv" style="color:var(--c2)" data-count="30">0</div>
+        <div class="sl">FPS стабильно</div>
+      </div>
+      <div>
+        <div class="sv" style="color:var(--c3)" data-count="95" data-suffix="%">0</div>
+        <div class="sl">Точность</div>
+      </div>
+      <div>
+        <div class="sv" style="color:var(--c5)" data-count="2">0</div>
+        <div class="sl">Аудитории онлайн</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- ═══ ПРОБЛЕМА ═══ -->
+<section id="p1">
+  <div class="gbg"></div>
+  <div class="orb" style="width:500px;height:500px;background:var(--c4);top:-150px;right:-150px;opacity:.1"></div>
+  <div class="w">
+    <div class="lb rv">Проблема</div>
+    <h2 class="ti rv d1">Ручной учёт<br>убивает время</h2>
+    <p class="su rv d2">Каждое занятие — 5–10 минут на перекличку. Данные теряются, не анализируются, дублируются вручную.</p>
+    <div class="pg rv d3">
+      <div class="pi">
+        <div class="pi-glow" style="background:var(--c3)"></div>
+        <div class="pi-bar" style="background:linear-gradient(180deg,var(--c3),transparent)"></div>
+        <div class="pi-ic-wrap" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.2)">⏱</div>
+        <div class="pi-t">5–10 минут на перекличку</div>
+        <div class="pi-d">Каждое занятие преподаватель тратит время на ручную перекличку группы из 19+ студентов — и это каждый раз.</div>
+      </div>
+      <div class="pi">
+        <div class="pi-glow" style="background:var(--c4)"></div>
+        <div class="pi-bar" style="background:linear-gradient(180deg,var(--c4),transparent)"></div>
+        <div class="pi-ic-wrap" style="background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.2)">📋</div>
+        <div class="pi-t">Бумажные журналы и ошибки</div>
+        <div class="pi-d">Данные хранятся на бумаге, легко теряются и остаются недоступными для анализа в реальном времени.</div>
+      </div>
+      <div class="pi">
+        <div class="pi-glow" style="background:var(--c2)"></div>
+        <div class="pi-bar" style="background:linear-gradient(180deg,var(--c2),transparent)"></div>
+        <div class="pi-ic-wrap" style="background:rgba(129,140,248,.1);border-color:rgba(129,140,248,.2)">📉</div>
+        <div class="pi-t">Нет аналитики и трендов</div>
+        <div class="pi-d">Невозможно быстро увидеть, кто систематически опаздывает или пропускает, без ручного пересчёта.</div>
+      </div>
+      <div class="pi">
+        <div class="pi-glow" style="background:var(--c5)"></div>
+        <div class="pi-bar" style="background:linear-gradient(180deg,var(--c5),transparent)"></div>
+        <div class="pi-ic-wrap" style="background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.2)">🔄</div>
+        <div class="pi-t">Тройное дублирование</div>
+        <div class="pi-d">Журнал → Excel → Отчёт. Данные переносятся вручную трижды, каждый раз увеличивая риск ошибки.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- ═══ СРАВНЕНИЕ ═══ -->
+<section id="cmp">
+  <div class="orb" style="width:500px;height:500px;background:var(--c1);bottom:-200px;left:-100px;opacity:.07"></div>
+  <div class="w">
+    <div class="lb rv">Сравнение</div>
+    <h2 class="ti rv d1">Было vs Стало</h2>
+    <p class="su rv d2">SmartAttend полностью меняет процесс учёта — от бумаги к автоматике.</p>
+
+    <div class="cmp-wrap rv d3">
+      <div class="cmp-old">
+        <div class="cmp-label" style="padding:20px 28px 0">До — ручной процесс</div>
+        <div class="cmp-header"><span>❌</span>Традиционная система</div>
+        <div class="cmp-row"><div class="cmp-icon">⏱</div><div class="cmp-text">5–10 мин на перекличку каждое занятие</div></div>
+        <div class="cmp-row"><div class="cmp-icon">📋</div><div class="cmp-text">Бумажный журнал — теряется, пачкается</div></div>
+        <div class="cmp-row"><div class="cmp-icon">🔢</div><div class="cmp-text">Ручной перенос в Excel — ошибки, дубли</div></div>
+        <div class="cmp-row"><div class="cmp-icon">📉</div><div class="cmp-text">Нет аналитики по группам и трендам</div></div>
+        <div class="cmp-row"><div class="cmp-icon">😴</div><div class="cmp-text">Студенты могут подписаться за другого</div></div>
+        <div class="cmp-row"><div class="cmp-icon">🗂</div><div class="cmp-text">Отчёты готовятся часами вручную</div></div>
+      </div>
+      <div class="cmp-new">
+        <div class="cmp-label" style="padding:20px 28px 0">После — SmartAttend</div>
+        <div class="cmp-header"><span>✅</span>AI-система</div>
+        <div class="cmp-row"><div class="cmp-icon">⚡</div><div class="cmp-text" style="color:var(--c1)">0 секунд — автоматически при входе</div></div>
+        <div class="cmp-row"><div class="cmp-icon">☁️</div><div class="cmp-text" style="color:var(--c1)">Цифровая база данных — всегда доступна</div></div>
+        <div class="cmp-row"><div class="cmp-icon">🔄</div><div class="cmp-text" style="color:var(--c1)">Данные обновляются в реальном времени</div></div>
+        <div class="cmp-row"><div class="cmp-icon">📊</div><div class="cmp-text" style="color:var(--c1)">Live дашборд, фильтры, тепловые карты</div></div>
+        <div class="cmp-row"><div class="cmp-icon">🎯</div><div class="cmp-text" style="color:var(--c1)">95% точность распознавания лица</div></div>
+        <div class="cmp-row"><div class="cmp-icon">📥</div><div class="cmp-text" style="color:var(--c1)">Экспорт CSV/PDF одним кликом</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- ═══ АРХИТЕКТУРА ═══ -->
+<section id="p2">
+  <div class="orb" style="width:600px;height:600px;background:var(--c1);top:-200px;left:-200px;opacity:.08"></div>
+  <div class="orb" style="width:400px;height:400px;background:var(--c2);bottom:-100px;right:-100px;opacity:.1"></div>
+  <div class="w">
+    <div class="lb rv">Архитектура</div>
+    <h2 class="ti rv d1">Как это работает</h2>
+    <p class="su rv d2">Три независимых потока на каждую камеру — дисплей никогда не ждёт вычислений.</p>
+
+    <div class="pipeline rv d3">
+      <div class="pstep">
+        <div class="picon" style="border-color:rgba(110,231,183,.2);box-shadow:inset 0 0 20px rgba(110,231,183,.05)">📹</div>
+        <div class="pname">Камера</div><div class="pdesc">IP-камера аудитории 25 FPS</div>
+      </div>
+      <div class="pstep">
+        <div class="picon" style="border-color:rgba(129,140,248,.2);box-shadow:inset 0 0 20px rgba(129,140,248,.05)">🎯</div>
+        <div class="pname">YOLOv8-Face</div><div class="pdesc">bbox + 5 ключевых точек лица</div>
+      </div>
+      <div class="pstep">
+        <div class="picon" style="border-color:rgba(245,158,11,.2);box-shadow:inset 0 0 20px rgba(245,158,11,.05)">🧠</div>
+        <div class="pname">ArcFace R50</div><div class="pdesc">512-мерный эмбеддинг</div>
+      </div>
+      <div class="pstep">
+        <div class="picon" style="border-color:rgba(56,189,248,.2);box-shadow:inset 0 0 20px rgba(56,189,248,.05)">⚡</div>
+        <div class="pname">Matching</div><div class="pdesc">Cosine similarity 2925 векторов</div>
+      </div>
+      <div class="pstep">
+        <div class="picon" style="border-color:rgba(110,231,183,.2);box-shadow:inset 0 0 20px rgba(110,231,183,.05)">📊</div>
+        <div class="pname">Dashboard</div><div class="pdesc">React + WebSocket live</div>
+      </div>
+    </div>
+
+    <div class="arch-cards">
+      <div class="ac rv d1">
+        <div class="ac-stripe" style="background:linear-gradient(90deg,var(--c1),transparent)"></div>
+        <div class="ac-num" style="color:var(--c1)">01</div>
+        <div class="ac-t">CaptureWorker Thread</div>
+        <div class="ac-d">Отдельный поток читает видео в FrameBuffer на полной скорости — MJPEG стрим не блокируется никогда.</div>
+      </div>
+      <div class="ac rv d2">
+        <div class="ac-stripe" style="background:linear-gradient(90deg,var(--c2),transparent)"></div>
+        <div class="ac-num" style="color:var(--c2)">02</div>
+        <div class="ac-t">InferenceWorker Thread</div>
+        <div class="ac-d">Второй поток берёт кадр, запускает GPU-инференс каждые N кадров и пишет результат в ResultBuffer.</div>
+      </div>
+      <div class="ac rv d3">
+        <div class="ac-stripe" style="background:linear-gradient(90deg,var(--c3),transparent)"></div>
+        <div class="ac-num" style="color:var(--c3)">03</div>
+        <div class="ac-t">Canvas rAF Overlay</div>
+        <div class="ac-d">Фронтенд рисует bbox через requestAnimationFrame — ноль React-ререндеров, плавные 30 FPS.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- ═══ ДЕМО ═══ -->
+<section id="p3">
+  <div class="orb" style="width:500px;height:500px;background:var(--c2);top:-100px;right:-150px;opacity:.1"></div>
+  <div class="w">
+    <div class="lb rv">Демонстрация</div>
+    <h2 class="ti rv d1">Две аудитории —<br>одна система</h2>
+    <p class="su rv d2">ИП-21 (Аудитория 418) и СТ-21 (Аудитория 428) — одновременный мониторинг в реальном времени.</p>
+
+    <div class="demo-wrap">
+      <!-- Видео с распознаванием -->
+      <div class="dc rv d1">
+        <video autoplay muted loop playsinline preload="auto"><source src="20260326-0918-48.6758933.mp4" type="video/mp4"></video>
+        <div class="dc-bar">
+          <div class="dc-live" style="background:rgba(239,68,68,.85)"><div class="dc-live-dot"></div>LIVE</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.5);font-weight:500">Аудитория 418 · ИП-21</div>
+        </div>
+        <div class="dc-bottom">
+          <div>
+            <div class="dc-name">Face Recognition</div>
+            <div class="dc-sub">YOLOv8-Face + ArcFace TRT · RTX 4060 Ti</div>
+          </div>
+          <div class="dc-tags">
+            <div class="dtag g">~18 лиц</div>
+            <div class="dtag p">30 FPS</div>
+            <div class="dtag b">~9ms</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Скриншот дашборда в browser chrome -->
+      <div class="browser rv d2">
+        <div class="browser-bar">
+          <div class="browser-dots">
+            <span style="background:#ff5f57"></span>
+            <span style="background:#febc2e"></span>
+            <span style="background:#28c840"></span>
+          </div>
+          <div class="browser-url">localhost:5173/report</div>
+          <div style="width:60px"></div>
+        </div>
+        <div class="browser-content">
+          <img src="Screenshot%202026-03-26%20234802.png" alt="Dashboard">
+        </div>
+        <div class="dc-badge" style="background:rgba(99,102,241,.88)">
+          <div class="dc-badge-dot"></div>DEMO
+        </div>
+        <div class="dc-bottom">
+          <div>
+            <div class="dc-name">Dashboard · Отчёты посещаемости</div>
+            <div class="dc-sub">React · TypeScript · WebSocket · Canvas</div>
+          </div>
+          <div class="dc-tags">
+            <div class="dtag p">39 студентов</div>
+            <div class="dtag a">2 группы</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- ═══ ТЕХНОЛОГИИ ═══ -->
+<section id="p4">
+  <div class="gbg"></div>
+  <div class="w">
+    <div class="lb rv">Стек технологий</div>
+    <h2 class="ti rv d1">Технологии</h2>
+    <p class="su rv d2">Оптимизированный GPU-стек для максимальной производительности без компромиссов.</p>
+    <div class="tech-grid rv d3">
+      <div class="tc">
+        <div class="tc-glow" style="background:var(--c4)"></div>
+        <div class="tc-bar" style="background:linear-gradient(90deg,var(--c4),transparent)"></div>
+        <div class="tc-cat" style="color:var(--c4)">Детектор лиц</div>
+        <div class="tc-name">YOLOv8-Face</div>
+        <div class="tc-ver">TensorRT FP16 · ~9ms</div>
+      </div>
+      <div class="tc">
+        <div class="tc-glow" style="background:var(--c2)"></div>
+        <div class="tc-bar" style="background:linear-gradient(90deg,var(--c2),transparent)"></div>
+        <div class="tc-cat" style="color:var(--c2)">Распознавание</div>
+        <div class="tc-name">ArcFace R50</div>
+        <div class="tc-ver">TRT · 512-dim · ~3ms</div>
+      </div>
+      <div class="tc">
+        <div class="tc-glow" style="background:var(--c1)"></div>
+        <div class="tc-bar" style="background:linear-gradient(90deg,var(--c1),transparent)"></div>
+        <div class="tc-cat" style="color:var(--c1)">Видеокарта</div>
+        <div class="tc-name">RTX 4060 Ti</div>
+        <div class="tc-ver">CUDA 12.1 · cuDNN 9.1</div>
+      </div>
+      <div class="tc">
+        <div class="tc-glow" style="background:var(--c3)"></div>
+        <div class="tc-bar" style="background:linear-gradient(90deg,var(--c3),transparent)"></div>
+        <div class="tc-cat" style="color:var(--c3)">Трекер</div>
+        <div class="tc-name">DeepSORT</div>
+        <div class="tc-ver">Face-only · ~2ms/кадр</div>
+      </div>
+      <div class="tc">
+        <div class="tc-glow" style="background:var(--c5)"></div>
+        <div class="tc-bar" style="background:linear-gradient(90deg,var(--c5),transparent)"></div>
+        <div class="tc-cat" style="color:var(--c5)">Бэкенд</div>
+        <div class="tc-name">FastAPI</div>
+        <div class="tc-ver">Python 3.9 · Uvicorn</div>
+      </div>
+      <div class="tc">
+        <div class="tc-glow" style="background:var(--c4)"></div>
+        <div class="tc-bar" style="background:linear-gradient(90deg,var(--c4),transparent)"></div>
+        <div class="tc-cat" style="color:var(--c4)">Стриминг</div>
+        <div class="tc-name">MJPEG + WS</div>
+        <div class="tc-ver">3 потока / камера</div>
+      </div>
+      <div class="tc">
+        <div class="tc-glow" style="background:var(--c2)"></div>
+        <div class="tc-bar" style="background:linear-gradient(90deg,var(--c2),transparent)"></div>
+        <div class="tc-cat" style="color:var(--c2)">Фронтенд</div>
+        <div class="tc-name">React + Vite</div>
+        <div class="tc-ver">TypeScript · Zustand</div>
+      </div>
+      <div class="tc">
+        <div class="tc-glow" style="background:var(--c1)"></div>
+        <div class="tc-bar" style="background:linear-gradient(90deg,var(--c1),transparent)"></div>
+        <div class="tc-cat" style="color:var(--c1)">Оверлей</div>
+        <div class="tc-name">Canvas rAF</div>
+        <div class="tc-ver">30 FPS · 0 ре-рендеров</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- ═══ РЕЗУЛЬТАТЫ ═══ -->
+<section id="p5">
+  <div class="orb" style="width:600px;height:600px;background:var(--c1);top:-200px;left:-200px;opacity:.07"></div>
+  <div class="orb" style="width:400px;height:400px;background:var(--c3);bottom:-100px;right:-100px;opacity:.08"></div>
+  <div class="w">
+    <div class="lb rv">Результаты</div>
+    <h2 class="ti rv d1">Измеримый эффект</h2>
+    <p class="su rv d2">Реальные показатели, измеренные в аудиториях 418 и 428 в ходе тестирования системы.</p>
+    <div class="results">
+      <div class="rc rv d1">
+        <div class="rc-glow" style="background:var(--c1)"></div>
+        <div class="rc-n" style="color:var(--c1)" data-count="95" data-suffix="%">0</div>
+        <div class="rc-l">Точность распознавания</div>
+        <div class="rc-s">На реальных видеозаписях аудиторий с разными углами освещения и положением студентов</div>
+      </div>
+      <div class="rc rv d2">
+        <div class="rc-glow" style="background:var(--c2)"></div>
+        <div class="rc-n" style="color:var(--c2)" data-count="30" data-suffix=" FPS">0</div>
+        <div class="rc-l">Стабильная частота кадров</div>
+        <div class="rc-s">MJPEG стрим не зависит от скорости инференса — capture и inference потоки полностью разделены</div>
+      </div>
+      <div class="rc rv d3">
+        <div class="rc-glow" style="background:var(--c3)"></div>
+        <div class="rc-n" style="color:var(--c3)" data-text="&lt;10ms">—</div>
+        <div class="rc-l">Задержка детекции</div>
+        <div class="rc-s">YOLOv8 TRT на RTX 4060 Ti: обнаружение 18 лиц в кадре занимает около 9мс</div>
+      </div>
+      <div class="rc rv d4">
+        <div class="rc-glow" style="background:var(--c4)"></div>
+        <div class="rc-n" style="color:var(--c4)" data-text="×0">—</div>
+        <div class="rc-l">Ручное отмечание</div>
+        <div class="rc-s">Полностью автоматический процесс — преподаватель не тратит ни минуты на перекличку</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- ═══ ФИНАЛ ═══ -->
+<section id="p6">
+  <div class="gbg"></div>
+  <div class="orb" style="width:700px;height:700px;background:var(--c2);top:50%;left:50%;transform:translate(-50%,-50%);opacity:.07"></div>
+  <div style="position:relative;z-index:1;text-align:center;display:flex;flex-direction:column;align-items:center">
+    <div class="lb rv" style="justify-content:center;margin-bottom:20px">Итог</div>
+    <h2 class="ft rv d1">Будущее учёта<br>посещаемости —<br><span class="gr">уже здесь</span></h2>
+    <p class="fs rv d2">SmartAttend автоматически отслеживает 39 студентов в двух аудиториях без участия преподавателя</p>
+    <div class="chips rv d3">
+      <div class="ch">ИП-21 · Аудитория 418</div>
+      <div class="ch">СТ-21 · Аудитория 428</div>
+      <div class="ch">YOLOv8-Face TRT</div>
+      <div class="ch">ArcFace R50 TRT</div>
+      <div class="ch">RTX 4060 Ti · CUDA 12.1</div>
+      <div class="ch">React · TypeScript</div>
+      <div class="ch">WebSocket Live</div>
+      <div class="ch">CSV / PDF Экспорт</div>
+    </div>
+  </div>
+</section>
+
+<script>
+const IDS = ['h0','p1','cmp','p2','p3','p4','p5','p6']
+const bar = document.getElementById('bar')
+const nav = document.getElementById('nav')
+const dots = document.querySelectorAll('.sd')
+
+window.addEventListener('scroll', () => {
+  const p = window.scrollY / (document.documentElement.scrollHeight - innerHeight)
+  bar.style.width = (p * 100) + '%'
+  nav.classList.toggle('s', window.scrollY > 50)
+})
+
+dots.forEach(d => d.addEventListener('click', () =>
+  document.getElementById(IDS[+d.dataset.i])?.scrollIntoView({behavior:'smooth'})
+))
+
+// Reveal on scroll
+const ro = new IntersectionObserver(e => e.forEach(x => {
+  if (x.isIntersecting) x.target.classList.add('show')
+}), {threshold: .12})
+document.querySelectorAll('.rv').forEach(el => ro.observe(el))
+
+// Active dot
+const so = new IntersectionObserver(e => e.forEach(x => {
+  if (x.isIntersecting) {
+    const i = IDS.indexOf(x.target.id)
+    if (i >= 0) dots.forEach((d, j) => d.classList.toggle('on', j === i))
+  }
+}), {threshold: .4})
+IDS.forEach(id => { const el = document.getElementById(id); if (el) so.observe(el) })
+
+// Animated counters
+function animCount(el) {
+  if (el.dataset.text) { el.textContent = el.dataset.text; return }
+  const target = +el.dataset.count, suffix = el.dataset.suffix || ''
+  const dur = 1600, t0 = performance.now()
+  const ease = t => 1 - Math.pow(1 - t, 4)
+  ;(function tick(now) {
+    const t = Math.min((now - t0) / dur, 1)
+    el.textContent = Math.round(ease(t) * target) + suffix
+    if (t < 1) requestAnimationFrame(tick)
+  })(t0)
+}
+const co = new IntersectionObserver(e => e.forEach(x => {
+  if (x.isIntersecting) {
+    x.target.querySelectorAll('[data-count],[data-text]').forEach(animCount)
+    co.unobserve(x.target)
+  }
+}), {threshold: .5})
+document.querySelectorAll('.sr, .results').forEach(el => co.observe(el))
+
+// Initial hero reveal
+setTimeout(() => document.querySelectorAll('#h0 .rv').forEach(el => el.classList.add('show')), 150)
+
+// Cursor spotlight
+document.addEventListener('mousemove', e => {
+  document.documentElement.style.setProperty('--mx', e.clientX + 'px')
+  document.documentElement.style.setProperty('--my', e.clientY + 'px')
+})
+
+// Typing effect
+const phrases = ['AI система учёта', 'распознавание лиц', 'учёт посещаемости', '30 FPS в реальном времени']
+let pi = 0, ci = 0, deleting = false
+const typedEl = document.getElementById('typed-text')
+const cursorEl = document.getElementById('typed-cursor')
+function typeLoop() {
+  const phrase = phrases[pi]
+  if (!deleting) {
+    typedEl.textContent = phrase.slice(0, ci++)
+    if (ci > phrase.length) { deleting = true; setTimeout(typeLoop, 1600); return }
+  } else {
+    typedEl.textContent = phrase.slice(0, ci--)
+    if (ci < 0) { deleting = false; pi = (pi + 1) % phrases.length; ci = 0 }
+  }
+  setTimeout(typeLoop, deleting ? 35 : 75)
+}
+if (typedEl) setTimeout(typeLoop, 1200)
+</script>
+</body>
+</html>

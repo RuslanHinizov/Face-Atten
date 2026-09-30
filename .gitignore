@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*/__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Claude
+.claude/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Model files (large)
+*.trt
+*.onnx
+*.pt
+*.zip
+
+# InsightFace models (large, download automatically)
+models/insightface/
+
+# Test videos (large)
+data/videos/*.mp4
+data/videos/*.avi
+*.mp4
+*.avi
+
+# Databases (generated)
+data/databases/*.pkl
+
+# Students photos (large, generated)
+students/
+
+# Recordings
+recordings/*.mp4
+recordings/*.avi
+
+# Logs
+*.log
+
+# InsightFace cache
+.insightface/
+
+# Node modules (frontend)
+frontend/node_modules/
+frontend/dist/
+
+# Temp files
+*.tmp
+nul
+
+# OS files
+.DS_Store
+Thumbs.db
+*.engine
+*.onnx
+data/databases/*.pt
+/*Аудитория*/
+logs/

@@ -1,0 +1,45 @@
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+opencv-python>=4.8.0
+tqdm>=4.66.0
+PyYAML>=6.0.0
+seaborn>=0.13.0
+scipy>=1.11.0
+thop>=0.1.1
+requests>=2.31.0
+Cython>=3.0.0
+matplotlib>=3.8.0
+numpy>=1.24.0
+Pillow>=10.0.0
+pandas>=2.0.0
+GPUtil>=1.4.0
+IPython>=8.12.0
+scikit-image>=0.21.0
+
+### Optional - Face Recognition
+
+## ArcFace/InsightFace (рекомендуется - state-of-the-art, 99.83% на LFW)
+# insightface>=0.7.3
+# onnxruntime-gpu>=1.19.0   # для CUDA
+# onnxruntime>=1.19.0       # для CPU
+
+## FaceNet (альтернатива)
+# facenet-pytorch>=2.5.3
+
+### Optional - ONNX format
+# onnx>=1.17.0
+# onnxruntime>=1.19.0
+
+### Optional - TensorRT format
+# tensorrt>=8.6.0
+# pycuda>=2022.2.0
+
+### Optional - Training
+# tensorboard>=2.14.0
+
+### API Server (Frontend Integration)
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.6
+websockets>=12.0
